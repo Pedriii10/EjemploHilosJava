@@ -5,9 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.TextView;
 
-
-// Al ejecutar este codigo, la interfaz de usuario queda bloqueada hasta que el bucle termine
-
+//Utilizacion de un hilo secundario, utilziando runnable y runOnUiThread
 
 public class MainActivity extends AppCompatActivity {
 
@@ -16,15 +14,34 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final TextView tvCrono = (TextView)findViewById(R.id.tvCrono);
-        int remaining = 10;
-        tvCrono.setText("Comenzamos");
-        while(remaining > 0) {
-            tvCrono.setText("" + remaining); remaining--;
-            try {
-                Thread.sleep(1000);
-            }catch(InterruptedException e){}
-        }
-        tvCrono.setText("Terminado");
+        final TextView tvCrono = findViewById(R.id.tvCrono);
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int remaining = 10;
+                while (remaining > 0) {
+                    int finalRemaining = remaining;
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            tvCrono.setText("" + finalRemaining);
+                        }
+                    });
+                    remaining--;
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        tvCrono.setText("Terminado");
+                    }
+                });
+            }
+        });
+        t.start();
     }
 }
